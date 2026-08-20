@@ -78,18 +78,18 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         const isBase = lowerText.includes('base');
         const isArbitrum = lowerText.includes('arbitrum');
         const isEthereum = lowerText.includes('ethereum') || lowerText.includes('eth ');
-        const srcChain = isBase ? 'Base' : isArbitrum ? 'Arbitrum' : isEthereum ? 'Ethereum Mainnet' : 'Base';
+        const srcChain = isBase ? 'Base Sepolia Testnet' : isArbitrum ? 'Arbitrum Sepolia Testnet' : isEthereum ? 'Sepolia Testnet' : 'Base Sepolia Testnet';
         const amountMatch = text.match(/\d+(\.\d+)?/);
         const amountStr = amountMatch ? amountMatch[0] : '0.5';
         
         reply = {
           sender: 'assistant',
-          text: `I have parsed your bridging intent: Bridge **${amountStr} ETH** from **${srcChain}** to **OKB** on **X Layer Testnet** using the OKX Bridge Aggregator. I found the optimal bridge route with the lowest fees and transfer time (~2 mins).`,
+          text: `I have parsed your bridging intent: Bridge **${amountStr} ETH** from **${srcChain}** to **OKB** on **X Layer Testnet** using the OKX Bridge Aggregator (Testnet). I found the optimal bridge route with the lowest fees and transfer time (~2 mins).`,
           txData: {
             type: 'swap',
-            target: '0x103a...20cd (OKX Cross-Chain Bridge Router)',
-            details: `Source Chain: ${srcChain}\nDest Chain: X Layer Testnet\nAmount: ${amountStr} ETH ➔ OKB\nBridge Provider: Stargate V2\nEst. Transfer Time: ~2 minutes`,
-            route: `${srcChain} (ETH) ➔ OKX Bridge Pool ➔ X Layer (OKB)`,
+            target: '0x103a...20cd (OKX Cross-Chain Bridge Router - Testnet)',
+            details: `Source Chain: ${srcChain}\nDest Chain: X Layer Testnet\nAmount: ${amountStr} ETH ➔ OKB\nBridge Provider: Stargate V2 (Testnet)\nEst. Transfer Time: ~2 minutes`,
+            route: `${srcChain} (ETH) ➔ OKX Bridge Pool ➔ X Layer Testnet (OKB)`,
             estGas: `0.00035 ETH ($0.85 on ${srcChain})`
           }
         };
