@@ -12,8 +12,11 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
   walletConnected: boolean;
   walletAddress: string;
+  walletBalance: string;
+  isCorrectNetwork: boolean;
   onConnectWallet: () => void;
   onDisconnectWallet: () => void;
+  onSwitchNetwork: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -21,8 +24,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveTab,
   walletConnected,
   walletAddress,
+  walletBalance,
+  isCorrectNetwork,
   onConnectWallet,
-  onDisconnectWallet
+  onDisconnectWallet,
+  onSwitchNetwork
 }) => {
   return (
     <aside className="sidebar">
@@ -77,25 +83,74 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {walletConnected ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {/* Network Indicator */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '0.5rem', 
+              justifyContent: 'space-between',
               padding: '0.5rem 0.75rem', 
-              background: 'rgba(16, 185, 129, 0.1)', 
+              background: isCorrectNetwork ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)', 
+              borderRadius: '8px', 
+              fontSize: '0.8rem',
+              border: isCorrectNetwork ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid rgba(239, 68, 68, 0.15)' 
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <div style={{ 
+                  width: '6px', 
+                  height: '6px', 
+                  borderRadius: '50%', 
+                  background: isCorrectNetwork ? 'var(--success)' : '#ef4444' 
+                }}></div>
+                <span style={{ color: isCorrectNetwork ? '#fff' : '#ef4444', fontWeight: 500, fontSize: '0.75rem' }}>
+                  {isCorrectNetwork ? 'X Layer Testnet' : 'Wrong Network'}
+                </span>
+              </div>
+              {!isCorrectNetwork && (
+                <button 
+                  onClick={onSwitchNetwork}
+                  style={{ 
+                    background: 'var(--primary)', 
+                    border: 'none', 
+                    color: '#000', 
+                    fontSize: '0.7rem', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                >
+                  Switch
+                </button>
+              )}
+            </div>
+
+            {/* Address & Balance */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '0.25rem',
+              padding: '0.6rem 0.75rem', 
+              background: 'rgba(255, 255, 255, 0.02)', 
               borderRadius: '8px', 
               fontSize: '0.85rem',
-              border: '1px solid rgba(16, 185, 129, 0.2)' 
+              border: '1px solid var(--border-color)' 
             }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }}></div>
-              <span style={{ fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                <span>Address</span>
+                <span style={{ fontFamily: 'var(--font-mono)' }}>
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                <span>Balance</span>
+                <span style={{ color: 'var(--primary)' }}>{walletBalance} OKB</span>
+              </div>
             </div>
+
             <button 
               onClick={onDisconnectWallet} 
               className="btn btn-secondary" 
-              style={{ padding: '0.5rem', fontSize: '0.8rem' }}
+              style={{ padding: '0.5rem', fontSize: '0.8rem', marginTop: '0.25rem' }}
             >
               Disconnect
             </button>

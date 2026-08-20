@@ -14,16 +14,24 @@ import type { Transaction } from '../App';
 
 interface DashboardProps {
   recentTxs: Transaction[];
+  walletBalance: string;
+  walletConnected: boolean;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ recentTxs }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ 
+  recentTxs,
+  walletBalance,
+  walletConnected
+}) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'activity'>('overview');
 
   const stats = [
     { label: 'Total Value Locked (TVL)', value: '$12,482,920', change: '+14.2%', isUp: true, icon: <Coins size={20} style={{ color: 'var(--primary)' }} /> },
     { label: '24h DEX Volume via OKX', value: '$1,842,502', change: '+28.4%', isUp: true, icon: <TrendingUp size={20} style={{ color: 'var(--accent)' }} /> },
     { label: 'Avg Yield APY', value: '8.45%', change: '+0.6%', isUp: true, icon: <Percent size={20} style={{ color: 'var(--success)' }} /> },
-    { label: 'Active AI Agents', value: '4,102', change: '-2.1%', isUp: false, icon: <ShieldCheck size={20} style={{ color: 'var(--success)' }} /> },
+    walletConnected 
+      ? { label: 'My Wallet Balance', value: `${walletBalance} OKB`, change: 'X Layer Testnet', isUp: true, icon: <ShieldCheck size={20} style={{ color: 'var(--success)' }} /> }
+      : { label: 'Active AI Agents', value: '4,102', change: '-2.1%', isUp: false, icon: <ShieldCheck size={20} style={{ color: 'var(--success)' }} /> },
   ];
 
   return (

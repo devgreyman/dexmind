@@ -22,9 +22,17 @@ interface Message {
 }
 interface AICopilotProps {
   onAddTransaction: (type: string, asset: string, amount: string) => void;
+  walletConnected: boolean;
+  walletAddress: string;
+  isCorrectNetwork: boolean;
 }
 
-export const AICopilot: React.FC<AICopilotProps> = ({ onAddTransaction }) => {
+export const AICopilot: React.FC<AICopilotProps> = ({ 
+  onAddTransaction,
+  walletConnected,
+  walletAddress,
+  isCorrectNetwork
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     { 
       sender: 'assistant', 
@@ -112,8 +120,58 @@ export const AICopilot: React.FC<AICopilotProps> = ({ onAddTransaction }) => {
     }, 1500);
   };
 
-  const handleExecuteTx = (index: number) => {
+  const handleExecuteTx = async (index: number) => {
     setExecutingTxId(index);
+
+    if (walletConnected) {
+      if (!isCorrectNetwork) {
+        alert("Please switch your wallet network to X Layer Testnet before executing transactions.");
+        setExecutingTxId(null);
+        return;
+      }
+
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        try {
+          const provider = (window as any).ethereum;
+          const mockVaultAddress = '0x4e6c33bb49d17f5ec86c33bb49d17f5ec86c33bb';
+          const txParams = {
+            from: walletAddress,
+            to: mockVaultAddress,
+            value: '0x0',
+            data: '0x',
+          };
+
+          await provider.request({
+            method: 'eth_sendTransaction',
+            params: [txParams],
+          });
+
+          setExecutingTxId(null);
+          setTxSuccessId(index);
+
+          const msg = messages[index];
+          if (msg && msg.txData) {
+            if (msg.txData.type === 'swap') {
+              onAddTransaction('Swap Intent', 'USDT to ETH', '$100');
+            } else if (msg.txData.type === 'rebalance') {
+              onAddTransaction('Rebalance', 'Treasury to Real Estate REIT', '$15,000');
+            }
+          }
+
+          setTimeout(() => {
+            setTxSuccessId(null);
+          }, 4000);
+          return;
+        } catch (error) {
+          console.error('Onchain transaction failed:', error);
+          alert('Transaction rejected or failed. Please check your wallet.');
+          setExecutingTxId(null);
+          return;
+        }
+      }
+    }
+
+    // Mock fallback
     setTimeout(() => {
       setExecutingTxId(null);
       setTxSuccessId(index);

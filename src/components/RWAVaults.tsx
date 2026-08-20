@@ -17,9 +17,19 @@ interface Vault {
 }
 interface RWAVaultsProps {
   onAddTransaction: (type: string, asset: string, amount: string) => void;
+  walletConnected: boolean;
+  walletAddress: string;
+  walletBalance: string;
+  isCorrectNetwork: boolean;
 }
 
-export const RWAVaults: React.FC<RWAVaultsProps> = ({ onAddTransaction }) => {
+export const RWAVaults: React.FC<RWAVaultsProps> = ({ 
+  onAddTransaction,
+  walletConnected,
+  walletAddress,
+  walletBalance,
+  isCorrectNetwork
+}) => {
   const [vaults, setVaults] = useState<Vault[]>([
     { id: '1', name: 'Short-Term US Treasuries Vault', symbol: 'dmUST', apy: '5.24%', risk: 'AAA (Low)', tvl: '$6.84M', alloc: 55, desc: 'Yields backed by 0-3 month US Treasury bills managed by regulated sponsors.' },
     { id: '2', name: 'Real Estate Rent Vault', symbol: 'dmREIT', apy: '8.20%', risk: 'A- (Medium)', tvl: '$3.72M', alloc: 30, desc: 'Tokenized commercial real estate yields paid monthly from rental revenues.' },
@@ -32,11 +42,54 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({ onAddTransaction }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [txHash, setTxHash] = useState('');
 
-  const handleAction = (e: React.FormEvent) => {
+  const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) return;
 
     setIsProcessing(true);
+
+    if (walletConnected) {
+      if (!isCorrectNetwork) {
+        alert("Please switch your wallet network to X Layer Testnet before executing transactions.");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        try {
+          const provider = (window as any).ethereum;
+          // Send a 0 value transaction to simulated Vault contract on X Layer Testnet
+          const mockVaultAddress = '0x4e6c33bb49d17f5ec86c33bb49d17f5ec86c33bb';
+          const txParams = {
+            from: walletAddress,
+            to: mockVaultAddress,
+            value: '0x0',
+            data: '0x', // Empty data or mock call
+          };
+
+          const txHashResult = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [txParams],
+          });
+
+          setTxHash(txHashResult);
+          onAddTransaction(
+            actionType === 'deposit' ? 'Deposit' : 'Withdraw',
+            selectedVault.name,
+            `$${parseFloat(amount).toLocaleString()}`
+          );
+          setAmount('');
+        } catch (error) {
+          console.error('Onchain transaction failed:', error);
+          alert('Transaction rejected or failed. Please check your wallet.');
+        } finally {
+          setIsProcessing(false);
+        }
+        return;
+      }
+    }
+
+    // Fallback for mocked simulations
     setTimeout(() => {
       setIsProcessing(false);
       const generatedHash = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
@@ -170,7 +223,14 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({ onAddTransaction }) => {
 
             <form onSubmit={handleAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Amount (USDT)</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Amount (USDT)</label>
+                  {walletConnected && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Balance: <strong style={{ color: 'var(--primary)' }}>{walletBalance} OKB</strong>
+                    </span>
+                  )}
+                </div>
                 <div style={{ position: 'relative' }}>
                   <input 
                     type="number" 
