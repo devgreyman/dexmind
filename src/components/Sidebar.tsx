@@ -3,9 +3,7 @@ import {
   LayoutDashboard, 
   MessageSquareCode, 
   Coins, 
-  TrendingUp, 
   Wallet,
-  Activity,
   Award
 } from 'lucide-react';
 

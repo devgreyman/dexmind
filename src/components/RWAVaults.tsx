@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
-  Coins, 
-  ArrowUpRight, 
-  HelpCircle, 
-  Check, 
-  Percent, 
   TrendingUp,
   Award
 } from 'lucide-react';
@@ -59,7 +54,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({ onAddTransaction }) => {
     setIsProcessing(true);
     setTimeout(() => {
       // Simulate rebalancing allocations
-      setVaults(prev => prev.map((v, i) => {
+      setVaults(prev => prev.map((v) => {
         if (v.id === '1') return { ...v, alloc: 50 }; // drop 5%
         if (v.id === '2') return { ...v, alloc: 35 }; // add 5%
         return v;

@@ -7,8 +7,7 @@ import {
   Percent, 
   ShieldCheck, 
   ExternalLink,
-  Info,
-  DollarSign
+  Info
 } from 'lucide-react';
 
 import type { Transaction } from '../App';

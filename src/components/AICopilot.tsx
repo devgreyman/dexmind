@@ -4,8 +4,6 @@ import {
   Sparkles, 
   Cpu, 
   HelpCircle, 
-  ArrowRight,
-  TrendingUp,
   CheckCircle,
   AlertTriangle,
   RotateCw
