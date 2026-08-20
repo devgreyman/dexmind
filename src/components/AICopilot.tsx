@@ -188,9 +188,16 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             setTxSuccessId(null);
           }, 4000);
           return;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Onchain transaction failed:', error);
-          alert('Transaction rejected or failed. Please check your wallet.');
+          const errorMsg = error?.message || '';
+          if (errorMsg.toLowerCase().includes('insufficient')) {
+            alert('Transaction failed: Insufficient OKB balance to pay gas fees. Please claim testnet OKB from the X Layer faucet.');
+          } else if (error?.code === 4001) {
+            alert('Transaction cancelled: User rejected the signature request in the wallet.');
+          } else {
+            alert(`Transaction failed: ${errorMsg || 'Please check your wallet connection and try again.'}`);
+          }
           setExecutingTxId(null);
           return;
         }
