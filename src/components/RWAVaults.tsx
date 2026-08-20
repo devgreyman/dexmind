@@ -38,6 +38,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
 
   const [selectedVault, setSelectedVault] = useState<Vault>(vaults[0]);
   const [actionType, setActionType] = useState<'deposit' | 'withdraw'>('deposit');
+  const [selectedToken, setSelectedToken] = useState<'OKB' | 'ETH'>('OKB');
   const [amount, setAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [txHash, setTxHash] = useState('');
@@ -76,7 +77,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
           onAddTransaction(
             actionType === 'deposit' ? 'Deposit' : 'Withdraw',
             selectedVault.name,
-            `$${parseFloat(amount).toLocaleString()}`
+            `${parseFloat(amount).toLocaleString()} ${selectedToken}`
           );
           setAmount('');
         } catch (error) {
@@ -97,7 +98,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
       onAddTransaction(
         actionType === 'deposit' ? 'Deposit' : 'Withdraw',
         selectedVault.name,
-        `$${parseFloat(amount).toLocaleString()}`
+        `${parseFloat(amount).toLocaleString()} ${selectedToken}`
       );
       setAmount('');
     }, 2000);
@@ -204,7 +205,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
               {actionType === 'deposit' ? 'Deposit Into' : 'Withdraw From'} {selectedVault.symbol}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
               <button 
                 onClick={() => setActionType('deposit')} 
                 className={`btn ${actionType === 'deposit' ? 'btn-primary' : 'btn-secondary'}`}
@@ -221,13 +222,38 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
               </button>
             </div>
 
+            {/* Token Selector */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1.25rem' }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Asset to Invest</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedToken('OKB')} 
+                  className={`btn ${selectedToken === 'OKB' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '0.4rem', fontSize: '0.8rem', borderRadius: '8px' }}
+                >
+                  OKB
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedToken('ETH')} 
+                  className={`btn ${selectedToken === 'ETH' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '0.4rem', fontSize: '0.8rem', borderRadius: '8px' }}
+                >
+                  ETH
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Amount (USDT)</label>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Amount ({selectedToken})</label>
                   {walletConnected && (
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                      Balance: <strong style={{ color: 'var(--primary)' }}>{walletBalance} OKB</strong>
+                      Balance: <strong style={{ color: 'var(--primary)' }}>
+                        {selectedToken === 'OKB' ? `${walletBalance} OKB` : '0.2482 ETH'}
+                      </strong>
                     </span>
                   )}
                 </div>
@@ -249,7 +275,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
                     }} 
                   />
                   <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    USDT
+                    {selectedToken}
                   </span>
                 </div>
               </div>
@@ -261,12 +287,12 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
                 </div>
                 <div style={{ display: 'flex', justifySelf: 'space-between', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
                   <span>Est Gas Fee</span>
-                  <span>~0.00018 ETH ($0.54)</span>
+                  <span>~0.005 OKB ($0.05)</span>
                 </div>
                 <div style={{ display: 'flex', justifySelf: 'space-between', justifyContent: 'space-between', fontWeight: 600 }}>
                   <span>Projected Annual Return</span>
                   <span style={{ color: 'var(--success)' }}>
-                    {amount ? `$${(parseFloat(amount) * parseFloat(selectedVault.apy) / 100).toFixed(2)}` : '$0.00'}
+                    {amount ? `${(parseFloat(amount) * parseFloat(selectedVault.apy) / 100).toFixed(4)} ${selectedToken}` : `0.0000 ${selectedToken}`}
                   </span>
                 </div>
               </div>
@@ -277,7 +303,7 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
                 style={{ width: '100%', marginTop: '0.5rem' }}
                 disabled={isProcessing || !amount}
               >
-                {isProcessing ? 'Processing Transaction...' : `${actionType === 'deposit' ? 'Deposit' : 'Withdraw'} USDT`}
+                {isProcessing ? 'Processing Transaction...' : `${actionType === 'deposit' ? 'Deposit' : 'Withdraw'} ${selectedToken}`}
               </button>
             </form>
           </div>

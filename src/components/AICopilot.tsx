@@ -55,9 +55,9 @@ export const AICopilot: React.FC<AICopilotProps> = ({
   }, [messages, isThinking]);
 
   const quickPrompts = [
-    { label: "Swap 100 USDT for ETH on OKX DEX", prompt: "Swap 100 USDT for ETH using the best OKX DEX route" },
-    { label: "Optimize my RWA portfolio yields", prompt: "Rebalance my RWA vault holdings to get the highest safe APY" },
-    { label: "Check risk of US Treasury Bond Vault", prompt: "Perform an AI risk analysis on the tokenized US Treasury vault" }
+    { label: "Swap 10 OKB for ETH on OKX DEX", prompt: "Swap 10 OKB for ETH using the best OKX DEX route" },
+    { label: "Bridge 0.5 ETH from Base to X Layer", prompt: "Bridge 0.5 ETH from Base to OKB on X Layer Testnet" },
+    { label: "Optimize my RWA portfolio yields", prompt: "Rebalance my RWA vault holdings to get the highest safe APY" }
   ];
 
   const handleSend = (text: string) => {
@@ -74,16 +74,37 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       let reply: Message;
       const lowerText = text.toLowerCase();
 
-      if (lowerText.includes('swap') || lowerText.includes('usdt')) {
+      if (lowerText.includes('bridge')) {
+        const isBase = lowerText.includes('base');
+        const isArbitrum = lowerText.includes('arbitrum');
+        const isEthereum = lowerText.includes('ethereum') || lowerText.includes('eth ');
+        const srcChain = isBase ? 'Base' : isArbitrum ? 'Arbitrum' : isEthereum ? 'Ethereum Mainnet' : 'Base';
+        const amountMatch = text.match(/\d+(\.\d+)?/);
+        const amountStr = amountMatch ? amountMatch[0] : '0.5';
+        
         reply = {
           sender: 'assistant',
-          text: "I have parsed your intent: Swap **100 USDT** for **ETH** on X Layer using the OKX DEX aggregator. I found the optimal route through the OKX Router which saves you 0.4% slippage.",
+          text: `I have parsed your bridging intent: Bridge **${amountStr} ETH** from **${srcChain}** to **OKB** on **X Layer Testnet** using the OKX Bridge Aggregator. I found the optimal bridge route with the lowest fees and transfer time (~2 mins).`,
+          txData: {
+            type: 'swap',
+            target: '0x103a...20cd (OKX Cross-Chain Bridge Router)',
+            details: `Source Chain: ${srcChain}\nDest Chain: X Layer Testnet\nAmount: ${amountStr} ETH ➔ OKB\nBridge Provider: Stargate V2\nEst. Transfer Time: ~2 minutes`,
+            route: `${srcChain} (ETH) ➔ OKX Bridge Pool ➔ X Layer (OKB)`,
+            estGas: `0.00035 ETH ($0.85 on ${srcChain})`
+          }
+        };
+      } else if (lowerText.includes('swap') || lowerText.includes('okb')) {
+        const amountMatch = text.match(/\d+(\.\d+)?/);
+        const amountStr = amountMatch ? amountMatch[0] : '10';
+        reply = {
+          sender: 'assistant',
+          text: `I have parsed your intent: Swap **${amountStr} OKB** for **ETH** on X Layer using the OKX DEX aggregator. I found the optimal route through the OKX Router which saves you 0.45% slippage.`,
           txData: {
             type: 'swap',
             target: '0x3a4b...fd12 (OKX DEX Aggregator Router)',
-            details: 'amountIn: 100.00 USDT\nminAmountOut: 0.0312 ETH\nmaxSlippage: 0.5%',
-            route: 'USDT ➔ OKX Pool ➔ WETH ➔ ETH',
-            estGas: '0.00015 ETH ($0.45)'
+            details: `amountIn: ${amountStr}.00 OKB\nminAmountOut: ${(parseFloat(amountStr) * 0.05).toFixed(4)} ETH\nmaxSlippage: 0.5%`,
+            route: 'OKB ➔ OKX Pool ➔ WETH ➔ ETH',
+            estGas: '0.005 OKB ($0.05)'
           }
         };
       } else if (lowerText.includes('rebalance') || lowerText.includes('optimize') || lowerText.includes('portfolio')) {
@@ -93,8 +114,8 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           txData: {
             type: 'rebalance',
             target: '0x8f2e...5a91 (DexMind Yield Manager)',
-            details: 'Withdraw 15% USDC from Treasury Vault\nDeposit 15% USDC to Real Estate Vault\nExpected Net Yield Increase: +0.47% APY',
-            estGas: '0.00032 ETH ($0.96)'
+            details: 'Withdraw 15% OKB from Treasury Vault\nDeposit 15% OKB to Real Estate Vault\nExpected Net Yield Increase: +0.47% APY',
+            estGas: '0.005 OKB ($0.05)'
           }
         };
       } else if (lowerText.includes('risk') || lowerText.includes('treasury')) {
@@ -151,10 +172,15 @@ export const AICopilot: React.FC<AICopilotProps> = ({
 
           const msg = messages[index];
           if (msg && msg.txData) {
-            if (msg.txData.type === 'swap') {
-              onAddTransaction('Swap Intent', 'USDT to ETH', '$100');
+            const isBridge = msg.txData.details.includes('Source Chain');
+            if (isBridge) {
+              const detailsLine = msg.txData.details.split('\n')[2] || 'ETH ➔ OKB';
+              const amt = detailsLine.split(': ')[1] || '0.5 ETH ➔ OKB';
+              onAddTransaction('Bridge Intent', 'Cross-Chain Bridge', amt);
+            } else if (msg.txData.type === 'swap') {
+              onAddTransaction('Swap Intent', 'OKB to ETH', '10 OKB');
             } else if (msg.txData.type === 'rebalance') {
-              onAddTransaction('Rebalance', 'Treasury to Real Estate REIT', '$15,000');
+              onAddTransaction('Rebalance', 'Treasury to Real Estate REIT', '15,000 OKB');
             }
           }
 
@@ -178,10 +204,15 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       
       const msg = messages[index];
       if (msg && msg.txData) {
-        if (msg.txData.type === 'swap') {
-          onAddTransaction('Swap Intent', 'USDT to ETH', '$100');
+        const isBridge = msg.txData.details.includes('Source Chain');
+        if (isBridge) {
+          const detailsLine = msg.txData.details.split('\n')[2] || 'ETH ➔ OKB';
+          const amt = detailsLine.split(': ')[1] || '0.5 ETH ➔ OKB';
+          onAddTransaction('Bridge Intent', 'Cross-Chain Bridge', amt);
+        } else if (msg.txData.type === 'swap') {
+          onAddTransaction('Swap Intent', 'OKB to ETH', '10 OKB');
         } else if (msg.txData.type === 'rebalance') {
-          onAddTransaction('Rebalance', 'Treasury to Real Estate REIT', '$15,000');
+          onAddTransaction('Rebalance', 'Treasury to Real Estate REIT', '15,000 OKB');
         }
       }
       

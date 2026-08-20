@@ -30,10 +30,10 @@ function App() {
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(false);
   
   const [recentTxs, setRecentTxs] = useState<Transaction[]>([
-    { hash: '0x3f5d...182a', type: 'Rebalance', asset: 'US Treasury Bill Vault', amount: '$45,000', time: '2 mins ago', status: 'Success' },
-    { hash: '0x8b2e...5a91', type: 'Deposit', asset: 'Real Estate Rent Vault', amount: '$12,500', time: '14 mins ago', status: 'Success' },
-    { hash: '0x7c41...d4fd', type: 'Swap Intent', asset: 'USDC to WETH', amount: '$3,400', time: '1 hr ago', status: 'Success' },
-    { hash: '0x4c0f...ce6e', type: 'Withdraw', asset: 'Gold Bullion Vault', amount: '$8,200', time: '3 hrs ago', status: 'Success' },
+    { hash: '0x3f5d...182a', type: 'Rebalance', asset: 'US Treasury Bill Vault', amount: '15,000 OKB', time: '2 mins ago', status: 'Success' },
+    { hash: '0x8b2e...5a91', type: 'Deposit', asset: 'Real Estate Rent Vault', amount: '2.5 ETH', time: '14 mins ago', status: 'Success' },
+    { hash: '0x7c41...d4fd', type: 'Swap Intent', asset: 'OKB to ETH', amount: '100 OKB', time: '1 hr ago', status: 'Success' },
+    { hash: '0x4c0f...ce6e', type: 'Withdraw', asset: 'Gold Bullion Vault', amount: '10 OKB', time: '3 hrs ago', status: 'Success' },
   ]);
 
   useEffect(() => {
