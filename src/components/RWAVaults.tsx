@@ -59,13 +59,21 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
       if (typeof window !== 'undefined' && (window as any).ethereum) {
         try {
           const provider = (window as any).ethereum;
-          // Send a 0 value transaction to simulated Vault contract on X Layer Testnet
-          const mockVaultAddress = '0x4e6c33bb49d17f5ec86c33bb49d17f5ec86c33bb';
+
+          // For demo: send a small self-transfer to create a real on-chain tx
+          // Cap at 0.1 OKB for testnet safety
+          const enteredAmount = parseFloat(amount);
+          const sendAmount = Math.min(enteredAmount, 0.1);
+
+          // Convert to Wei hex
+          const weiValue = BigInt(Math.floor(sendAmount * 1e18));
+          const hexValue = '0x' + weiValue.toString(16);
+
+          // Self-transfer: send OKB to yourself (simulates vault deposit/withdraw)
           const txParams = {
             from: walletAddress,
-            to: mockVaultAddress,
-            value: '0x0',
-            data: '0x', // Empty data or mock call
+            to: walletAddress,
+            value: hexValue,
           };
 
           const txHashResult = await provider.request({

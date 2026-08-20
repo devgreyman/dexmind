@@ -40,21 +40,25 @@ function App() {
     const provider = getEthereumProvider();
     if (!provider) return;
 
-    // Check if already connected
-    provider.request({ method: 'eth_accounts' })
-      .then(async (accounts: string[]) => {
-        if (accounts && accounts.length > 0) {
-          const currentChainId = await getChainId();
-          setIsCorrectNetwork(currentChainId === '0xc3');
-          
-          setWalletAddress(accounts[0]);
-          setWalletConnected(true);
-          
-          const bal = await getOKBBalance(accounts[0]);
-          setWalletBalance(bal);
-        }
-      })
-      .catch(console.error);
+    // Skip auto-reconnect if the user explicitly disconnected
+    const wasDisconnected = localStorage.getItem('wallet_disconnected');
+    if (!wasDisconnected) {
+      // Check if already connected
+      provider.request({ method: 'eth_accounts' })
+        .then(async (accounts: string[]) => {
+          if (accounts && accounts.length > 0) {
+            const currentChainId = await getChainId();
+            setIsCorrectNetwork(currentChainId === '0xc3');
+            
+            setWalletAddress(accounts[0]);
+            setWalletConnected(true);
+            
+            const bal = await getOKBBalance(accounts[0]);
+            setWalletBalance(bal);
+          }
+        })
+        .catch(console.error);
+    }
 
     const handleAccountsChanged = async (accounts: string[]) => {
       if (accounts.length === 0) {
@@ -107,6 +111,9 @@ function App() {
       return;
     }
     try {
+      // Clear the disconnected flag since user is explicitly connecting
+      localStorage.removeItem('wallet_disconnected');
+      
       const accounts = await web3ConnectWallet();
       if (accounts.length > 0) {
         setWalletAddress(accounts[0]);
@@ -124,10 +131,30 @@ function App() {
     }
   };
 
-  const disconnectWallet = () => {
+  const disconnectWallet = async () => {
+    // Set flag so useEffect won't auto-reconnect on page refresh
+    localStorage.setItem('wallet_disconnected', 'true');
+    
+    // Try to revoke wallet permissions (supported by MetaMask & OKX Wallet)
+    const provider = getEthereumProvider();
+    if (provider) {
+      try {
+        await provider.request({
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }]
+        });
+      } catch (err) {
+        // Not all wallets support wallet_revokePermissions — that's OK,
+        // the localStorage flag will still prevent auto-reconnect
+        console.warn('wallet_revokePermissions not supported:', err);
+      }
+    }
+    
+    // Clear React state
     setWalletConnected(false);
     setWalletAddress('');
     setWalletBalance('0.0000');
+    setIsCorrectNetwork(false);
   };
 
   const renderContent = () => {

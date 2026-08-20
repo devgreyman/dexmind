@@ -154,12 +154,30 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       if (typeof window !== 'undefined' && (window as any).ethereum) {
         try {
           const provider = (window as any).ethereum;
-          const mockVaultAddress = '0x4e6c33bb49d17f5ec86c33bb49d17f5ec86c33bb';
+          const msg = messages[index];
+
+          // Determine a small OKB amount to send as a demo transaction
+          // For swaps/bridges we use a tiny amount; for rebalance even less
+          let sendAmountOKB = 0.001; // default: 0.001 OKB
+          if (msg?.txData) {
+            const amountMatch = msg.txData.details.match(/(\d+\.?\d*)/);
+            if (amountMatch) {
+              const parsed = parseFloat(amountMatch[1]);
+              // Cap at 0.01 OKB for demo safety, minimum 0.0001
+              sendAmountOKB = Math.min(Math.max(parsed * 0.001, 0.0001), 0.01);
+            }
+          }
+
+          // Convert OKB amount to Wei hex string
+          const weiValue = BigInt(Math.floor(sendAmountOKB * 1e18));
+          const hexValue = '0x' + weiValue.toString(16);
+
+          // Self-transfer: send a small amount of OKB to yourself
+          // This creates a real on-chain transaction on X Layer Testnet
           const txParams = {
             from: walletAddress,
-            to: mockVaultAddress,
-            value: '0x0',
-            data: '0x',
+            to: walletAddress,
+            value: hexValue,
           };
 
           await provider.request({
@@ -170,7 +188,6 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           setExecutingTxId(null);
           setTxSuccessId(index);
 
-          const msg = messages[index];
           if (msg && msg.txData) {
             const isBridge = msg.txData.details.includes('Source Chain');
             if (isBridge) {
