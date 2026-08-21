@@ -157,7 +157,6 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           const msg = messages[index];
 
           // Determine a small OKB amount to send as a demo transaction
-          // For swaps/bridges we use a tiny amount; for rebalance even less
           let sendAmountOKB = 0.001; // default: 0.001 OKB
           if (msg?.txData) {
             const amountMatch = msg.txData.details.match(/(\d+\.?\d*)/);
@@ -168,16 +167,22 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             }
           }
 
-          // Convert OKB amount to Wei hex string
-          const weiValue = BigInt(Math.floor(sendAmountOKB * 1e18));
+          // Safe Wei conversion: avoid floating point overflow of MAX_SAFE_INTEGER
+          // by splitting into whole and fractional parts
+          const parts = sendAmountOKB.toFixed(18).split('.');
+          const whole = BigInt(parts[0]) * BigInt('1000000000000000000');
+          const frac = BigInt((parts[1] || '0').slice(0, 18).padEnd(18, '0'));
+          const weiValue = whole + frac;
           const hexValue = '0x' + weiValue.toString(16);
 
-          // Self-transfer: send a small amount of OKB to yourself
-          // This creates a real on-chain transaction on X Layer Testnet
+          // Send to standard burn address with explicit gas limit
+          // Gas limit 21000 is the standard cost for a simple native token transfer
+          const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD';
           const txParams = {
             from: walletAddress,
-            to: walletAddress,
+            to: BURN_ADDRESS,
             value: hexValue,
+            gas: '0x5208', // 21000 in hex
           };
 
           await provider.request({

@@ -60,20 +60,25 @@ export const RWAVaults: React.FC<RWAVaultsProps> = ({
         try {
           const provider = (window as any).ethereum;
 
-          // For demo: send a small self-transfer to create a real on-chain tx
+          // For demo: send a small amount to burn address for a real on-chain tx
           // Cap at 0.1 OKB for testnet safety
           const enteredAmount = parseFloat(amount);
           const sendAmount = Math.min(enteredAmount, 0.1);
 
-          // Convert to Wei hex
-          const weiValue = BigInt(Math.floor(sendAmount * 1e18));
+          // Safe Wei conversion: avoid floating point overflow of MAX_SAFE_INTEGER
+          const parts = sendAmount.toFixed(18).split('.');
+          const whole = BigInt(parts[0]) * BigInt('1000000000000000000');
+          const frac = BigInt((parts[1] || '0').slice(0, 18).padEnd(18, '0'));
+          const weiValue = whole + frac;
           const hexValue = '0x' + weiValue.toString(16);
 
-          // Self-transfer: send OKB to yourself (simulates vault deposit/withdraw)
+          // Send to standard burn address with explicit gas limit
+          const BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD';
           const txParams = {
             from: walletAddress,
-            to: walletAddress,
+            to: BURN_ADDRESS,
             value: hexValue,
+            gas: '0x5208', // 21000 in hex
           };
 
           const txHashResult = await provider.request({
