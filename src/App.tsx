@@ -9,7 +9,8 @@ import {
   getChainId, 
   getOKBBalance, 
   switchToXLayerTestnet, 
-  isWeb3Available 
+  isWeb3Available,
+  isXLayerTestnet
 } from './utils/web3';
 import './index.css';
 
@@ -48,7 +49,7 @@ function App() {
         .then(async (accounts: string[]) => {
           if (accounts && accounts.length > 0) {
             const currentChainId = await getChainId();
-            setIsCorrectNetwork(currentChainId === '0xc3');
+            setIsCorrectNetwork(isXLayerTestnet(currentChainId));
             
             setWalletAddress(accounts[0]);
             setWalletConnected(true);
@@ -74,7 +75,7 @@ function App() {
     };
 
     const handleChainChanged = async (hexChainId: string) => {
-      const correct = hexChainId === '0xc3';
+      const correct = isXLayerTestnet(hexChainId);
       setIsCorrectNetwork(correct);
       if (walletAddress) {
         const bal = await getOKBBalance(walletAddress);
@@ -121,7 +122,7 @@ function App() {
         
         await switchToXLayerTestnet();
         const currentChainId = await getChainId();
-        setIsCorrectNetwork(currentChainId === '0xc3');
+        setIsCorrectNetwork(isXLayerTestnet(currentChainId));
         
         const bal = await getOKBBalance(accounts[0]);
         setWalletBalance(bal);

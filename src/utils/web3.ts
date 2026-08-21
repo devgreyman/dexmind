@@ -16,6 +16,12 @@ export const XLAYER_TESTNET_PARAMS = {
   blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer-testnet']
 };
 
+export function isXLayerTestnet(chainId: string | number): boolean {
+  if (!chainId) return false;
+  const str = String(chainId).toLowerCase();
+  return str === '0xc3' || str === '195' || str === '0x195';
+}
+
 export function getEthereumProvider(): EthereumProvider | null {
   if (typeof window !== 'undefined' && (window as any).ethereum) {
     return (window as any).ethereum;
